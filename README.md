@@ -1,5 +1,5 @@
 
-## IBM Watson Studio 사용자 가이드 ##
+## TensorFlow Machine Learning Lab using IBM Watson Studio ##
 
  * 본 문서는 Tensorflow 를 활용한 machine learning 학습을 위한 Lab notebook을 제공합니다.
  * 원본 소스 화일들은 김성훈 교수님의 [DeepLearningZeroToAll](https://github.com/hunkim/DeepLearningZeroToAll) 에서 가져왔습니다.
