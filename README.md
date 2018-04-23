@@ -6,8 +6,8 @@
  * .py 확장자를 가진 Python script 들을 [IBM Watson Studio](https://console.bluemix.net/catalog/services/watson-studio) notebook으로 전환했습니다.
  * 각각의 notebook 에서 한글로 comment 되어 있는 부분은 제가 study 하면서 추가한 내용으로 저와 같은 초보자들의 이해를 돕기 위함입니다. 
  * 잘못된 부분이나 보완이 필요한 사항은 메일 부탁드립니다. (parkhsu@kr.ibm.com)
-
-
+----------
+----------
 :paw_prints:*`lab-01-basics.ipynb`* : TensorFlow 기초적인 개념을 설명합니다.
 
 :bouquet:*`lab-02-1-linear_regression.ipynb`* :	선형회귀를 매뉴얼로 구현합니다.   
