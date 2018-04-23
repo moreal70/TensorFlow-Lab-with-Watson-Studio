@@ -14,7 +14,7 @@
 :tulip:*`lab-02-2-linear_regression_feed.ipynb`* : input 값을 변수 처리했다가 실제 run 할때 받아들이는 테스트입니다.   
 :four_leaf_clover:*`lab-03-1-minimizing_cost_show_graph.ipynb`* : cost값이 어떻게 변화하는 지 그래프로 그려서 이해합니다.   
 :rose:*`lab-03-2-minimizing_cost_gradient_update.ipynb`* : 경사하강법 공식을 수작으로 만들어 봅니다.   
-:sunflower:*`lab-03-3-minimizing_cost_tf_optimizer.ipynb`* : 최소 시작점이 되는 W 값을 변화시켜보면서 경사하강의 개념을 이해합니다.   
+:sunflower:*`lab-03-3-minimizing_cost_tf_optimizer.ipynb`* : 최소 시작점이 되는 W 값을 변화시켜 경사하강의 개념을 이해합니다.   
 :hibiscus:*`lab-03-3-minimizing_cost_tf_optimizer_IRIS.ipynb`* : IRIS 데이터를 가지고 learning 을 수행합니다.   
 :maple_leaf:*`lab-04-1-multi_variable_linear_regression.ipynb`* : 다변량 값으로 선형회귀를 실습합니다.   	
 :leaves:*`lab-04-2-multi_variable_matmul_linear_regression.py.ipynb`* :	다변량 처리를 matrix 로 구성해서 소스를 간략히 합니다.   
