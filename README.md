@@ -1,4 +1,4 @@
-:full_moon_with_face: ***Under construction***
+
 
 ## TensorFlow Machine Learning Lab using IBM Watson Studio ##
 
