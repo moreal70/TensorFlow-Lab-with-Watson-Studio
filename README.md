@@ -1,4 +1,5 @@
 
+:full_moon_with_face: ***Deep Learning Lab까지 계속 추가하는 중이고,이후에는 Reinforcement Learning도 작업 할 예정입니다.***
 
 ## TensorFlow Machine Learning Lab using IBM Watson Studio ##
 
@@ -6,7 +7,8 @@
  * 원본 소스 화일들은 김성훈 교수님의 [DeepLearningZeroToAll](https://github.com/hunkim/DeepLearningZeroToAll) 에서 가져왔습니다.
  * .py 확장자를 가진 Python script 들을 [IBM Watson Studio](https://console.bluemix.net/catalog/services/watson-studio) notebook으로 전환했습니다.
  * 각각의 notebook 에서 한글로 comment 되어 있는 부분은 제가 study 하면서 추가한 내용으로 저와 같은 초보자들의 이해를 돕기 위함입니다. 
- * 잘못된 부분이나 보완이 필요한 사항은 메일 부탁드립니다. (parkhsu@kr.ibm.com)
+ * 궁금한 사항이나 Watson Studio Project 공유를 원하시는 분은 메일 주세요. (parkhsu@kr.ibm.com)
+
 ----------
 :paw_prints:*`lab-01-basics.ipynb`* : TensorFlow 기초적인 개념을 설명합니다.
 
