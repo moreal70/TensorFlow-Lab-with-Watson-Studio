@@ -48,6 +48,8 @@
 
 :seedling:*`lab-08-tensor_manipulation `* : tensor 에 대한 기초적인 핸들링 방법을 배웁니다.
 
+----------
+
 :blossom:*`lab-09-1-xor`* : Deep Learning 에 들어가지 앞서서 그 역사에 해당하는 xor 문제를 풀어봅니다.
 
 :ear_of_rice:*`lab-09-2-xor-nn `* : Neural network 으로 xor 문제를 해결합니다.
