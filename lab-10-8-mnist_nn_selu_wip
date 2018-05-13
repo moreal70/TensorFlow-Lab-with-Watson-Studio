@@ -1,0 +1,105 @@
+{
+    "nbformat_minor": 2, 
+    "cells": [
+        {
+            "source": "---\n* *** \uc6d0\ubcf8 \uc18c\uc2a4\ub294 \ud64d\ucf69\uacfc\uae30\ub300 \uae40\uc131\ud6c8 \uad50\uc218\ub2d8\uc758  [Github link](https://github.com/hunkim/DeepLearningZeroToAll)\ub97c \ucc38\uc870\ud558\uc138\uc694 ***     \n* *** Watson studio notebook \uc5d0\uc11c \uc791\uc5c5 \uac00\ub2a5\ud558\ub3c4\ub85d \uc218\uc815\ud558\uc600\uc73c\uba70***\n* *** \ud55c\uae00\ub85c \uc124\uba85\ub41c \ubd80\ubd84\uc740 \uc81c\uac00 \uc2a4\ud130\ub514 \ud558\uba74\uc11c \uc774\ud574\ud55c \ub0b4\uc6a9\uc744 \ucd94\uac00\ud55c \uac83\uc785\ub2c8\ub2e4. ***\n---", 
+            "cell_type": "markdown", 
+            "metadata": {}
+        }, 
+        {
+            "source": "* ***scaled ELU ***\n\n![#1](https://github.com/moreal70/TensorFlow-Lab-with-Watson-Studio/raw/master/images/scaled%20elu.png)", 
+            "cell_type": "markdown", 
+            "metadata": {}
+        }, 
+        {
+            "execution_count": 1, 
+            "cell_type": "code", 
+            "metadata": {}, 
+            "outputs": [
+                {
+                    "output_type": "stream", 
+                    "name": "stderr", 
+                    "text": "C:\\Users\\HyeonSuPARK\\Anaconda3\\lib\\site-packages\\h5py\\__init__.py:36: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.\n  from ._conv import register_converters as _register_converters\n"
+                }, 
+                {
+                    "output_type": "stream", 
+                    "name": "stdout", 
+                    "text": "WARNING:tensorflow:From C:\\Users\\HyeonSuPARK\\Anaconda3\\lib\\site-packages\\tensorflow\\contrib\\learn\\python\\learn\\datasets\\base.py:198: retry (from tensorflow.contrib.learn.python.learn.datasets.base) is deprecated and will be removed in a future version.\nInstructions for updating:\nUse the retry module or similar alternatives.\n"
+                }
+            ], 
+            "source": "# Lab 10 MNIST and Dropout\n# SELU implementation from https://github.com/bioinf-jku/SNNs/blob/master/selu.py\nimport tensorflow as tf\nimport random\n# import matplotlib.pyplot as plt\n# -*- coding: utf-8 -*-\n'''\nTensorflow Implementation of the Scaled ELU function and Dropout\n'''\n\nimport numbers\nfrom tensorflow.contrib import layers\nfrom tensorflow.python.framework import ops\nfrom tensorflow.python.framework import tensor_shape\nfrom tensorflow.python.framework import tensor_util\nfrom tensorflow.python.ops import math_ops\nfrom tensorflow.python.ops import random_ops\nfrom tensorflow.python.ops import array_ops\nfrom tensorflow.python.layers import utils\n\nfrom tensorflow.examples.tutorials.mnist import input_data\n\ntf.set_random_seed(777)  # reproducibility"
+        }, 
+        {
+            "execution_count": null, 
+            "cell_type": "code", 
+            "metadata": {}, 
+            "outputs": [], 
+            "source": "def selu(x):\n    with ops.name_scope('elu') as scope:\n        alpha = 1.6732632423543772848170429916717\n        scale = 1.0507009873554804934193349852946\n        return scale*tf.where(x>=0.0, x, alpha*tf.nn.elu(x))\n\n\ndef dropout_selu(x, keep_prob, alpha= -1.7580993408473766, fixedPointMean=0.0, fixedPointVar=1.0,\n                 noise_shape=None, seed=None, name=None, training=False):\n    \"\"\"Dropout to a value with rescaling.\"\"\"\n\n    def dropout_selu_impl(x, rate, alpha, noise_shape, seed, name):\n        keep_prob = 1.0 - rate\n        x = ops.convert_to_tensor(x, name=\"x\")\n        if isinstance(keep_prob, numbers.Real) and not 0 < keep_prob <= 1:\n            raise ValueError(\"keep_prob must be a scalar tensor or a float in the \"\n                                             \"range (0, 1], got %g\" % keep_prob)\n        keep_prob = ops.convert_to_tensor(keep_prob, dtype=x.dtype, name=\"keep_prob\")\n        keep_prob.get_shape().assert_is_compatible_with(tensor_shape.scalar())\n\n        alpha = ops.convert_to_tensor(alpha, dtype=x.dtype, name=\"alpha\")\n        keep_prob.get_shape().assert_is_compatible_with(tensor_shape.scalar())\n\n        if tensor_util.constant_value(keep_prob) == 1:\n            return x\n\n        noise_shape = noise_shape if noise_shape is not None else array_ops.shape(x)\n        random_tensor = keep_prob\n        random_tensor += random_ops.random_uniform(noise_shape, seed=seed, dtype=x.dtype)\n        binary_tensor = math_ops.floor(random_tensor)\n        ret = x * binary_tensor + alpha * (1-binary_tensor)\n\n        a = tf.sqrt(fixedPointVar / (keep_prob *((1-keep_prob) * tf.pow(alpha-fixedPointMean,2) + fixedPointVar)))\n\n        b = fixedPointMean - a * (keep_prob * fixedPointMean + (1 - keep_prob) * alpha)\n        ret = a * ret + b\n        ret.set_shape(x.get_shape())\n        return ret\n\n    with ops.name_scope(name, \"dropout\", [x]) as name:\n        return utils.smart_cond(training,\n                                lambda: dropout_selu_impl(x, keep_prob, alpha, noise_shape, seed, name),\n                                lambda: array_ops.identity(x))"
+        }, 
+        {
+            "execution_count": null, 
+            "cell_type": "code", 
+            "metadata": {}, 
+            "outputs": [], 
+            "source": "# parameters\nlearning_rate = 0.001\ntraining_epochs = 50\nbatch_size = 100\n\n# input place holders\nX = tf.placeholder(tf.float32, [None, 784])\nY = tf.placeholder(tf.float32, [None, 10])\n\n# dropout (keep_prob) rate  0.7 on training, but should be 1 for testing\nkeep_prob = tf.placeholder(tf.float32)\n\n# weights & bias for nn layers\n# http://stackoverflow.com/questions/33640581/how-to-do-xavier-initialization-on-tensorflow\nW1 = tf.get_variable(\"W1\", shape=[784, 512],\n                     initializer=tf.contrib.layers.xavier_initializer())\nb1 = tf.Variable(tf.random_normal([512]))\nL1 = selu(tf.matmul(X, W1) + b1)\nL1 = dropout_selu(L1, keep_prob=keep_prob)\n\nW2 = tf.get_variable(\"W2\", shape=[512, 512],\n                     initializer=tf.contrib.layers.xavier_initializer())\nb2 = tf.Variable(tf.random_normal([512]))\nL2 = selu(tf.matmul(L1, W2) + b2)\nL2 = dropout_selu(L2, keep_prob=keep_prob)\n\nW3 = tf.get_variable(\"W3\", shape=[512, 512],\n                     initializer=tf.contrib.layers.xavier_initializer())\nb3 = tf.Variable(tf.random_normal([512]))\nL3 = selu(tf.matmul(L2, W3) + b3)\nL3 = dropout_selu(L3, keep_prob=keep_prob)\n\nW4 = tf.get_variable(\"W4\", shape=[512, 512],\n                     initializer=tf.contrib.layers.xavier_initializer())\nb4 = tf.Variable(tf.random_normal([512]))\nL4 = selu(tf.matmul(L3, W4) + b4)\nL4 = dropout_selu(L4, keep_prob=keep_prob)\n\nW5 = tf.get_variable(\"W5\", shape=[512, 10],\n                     initializer=tf.contrib.layers.xavier_initializer())\nb5 = tf.Variable(tf.random_normal([10]))\nhypothesis = tf.matmul(L4, W5) + b5\n\n# define cost/loss & optimizer\ncost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=hypothesis, labels=Y))\noptimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)"
+        }, 
+        {
+            "execution_count": null, 
+            "cell_type": "code", 
+            "metadata": {}, 
+            "outputs": [], 
+            "source": "# initialize\nsess = tf.Session()\nsess.run(tf.global_variables_initializer())\n\nmnist = input_data.read_data_sets(\"MNIST_data/\", one_hot=True)\n# Check out https://www.tensorflow.org/get_started/mnist/beginners for\n# more information about the mnist dataset\n\n# train my model\nfor epoch in range(training_epochs):\n    avg_cost = 0\n    total_batch = int(mnist.train.num_examples / batch_size)\n\n    for i in range(total_batch):\n        batch_xs, batch_ys = mnist.train.next_batch(batch_size)\n        feed_dict = {X: batch_xs, Y: batch_ys, keep_prob: 0.7}\n        c, _ = sess.run([cost, optimizer], feed_dict=feed_dict)\n        avg_cost += c / total_batch\n\n    print('Epoch:', '%04d' % (epoch + 1), 'cost =', '{:.9f}'.format(avg_cost))\n\nprint('Learning Finished!')"
+        }, 
+        {
+            "source": "* ***\uc55e\uc5d0 lab \uc5d0\uc11c softmax \ub294 90% , NN\uc740 94%, xavier \ucd08\uae30\ud654\ub97c \uc4f0\uba74 97%, ***\n* ***layer 5\uac1c\ub97c \uc4f0\uba74 98.11 % ,     \uc815\ub3c4\uc758 \uc815\ud655\ub3c4\ub97c \ubcf4\uc5ec\uc8fc\uc5c8\uc2b5\ub2c8\ub2e4.***", 
+            "cell_type": "markdown", 
+            "metadata": {}
+        }, 
+        {
+            "execution_count": null, 
+            "cell_type": "code", 
+            "metadata": {}, 
+            "outputs": [], 
+            "source": "# Test model and check accuracy\ncorrect_prediction = tf.equal(tf.argmax(hypothesis, 1), tf.argmax(Y, 1))\naccuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))\nprint('Accuracy:', sess.run(accuracy, feed_dict={\n      X: mnist.test.images, Y: mnist.test.labels, keep_prob: 1}))"
+        }, 
+        {
+            "source": "* ***sample \uc744 random \ud558\uac8c \uac00\uc838\uc640\uc11c \uadf8\ub9bc\uc73c\ub85c \ubcf4\uc5ec\uc8fc\uace0 \uc608\uce21\ud569\ub2c8\ub2e4. ***", 
+            "cell_type": "markdown", 
+            "metadata": {}
+        }, 
+        {
+            "execution_count": null, 
+            "cell_type": "code", 
+            "metadata": {}, 
+            "outputs": [], 
+            "source": "# Get one and predict\nr = random.randint(0, mnist.test.num_examples - 1)\nprint(\"Label: \", sess.run(tf.argmax(mnist.test.labels[r:r + 1], 1)))\nprint(\"Prediction: \", sess.run(\n    tf.argmax(hypothesis, 1), feed_dict={X: mnist.test.images[r:r + 1], keep_prob: 1}))\n\nplt.imshow(mnist.test.images[r:r + 1].\n          reshape(28, 28), cmap='Greys', interpolation='nearest')\nplt.show()"
+        }, 
+        {
+            "execution_count": null, 
+            "cell_type": "code", 
+            "metadata": {}, 
+            "outputs": [], 
+            "source": "'''\nEpoch: 0001 cost = 0.447322626\nEpoch: 0002 cost = 0.157285590\nEpoch: 0003 cost = 0.121884535\nEpoch: 0004 cost = 0.098128681\nEpoch: 0005 cost = 0.082901778\nEpoch: 0006 cost = 0.075337573\nEpoch: 0007 cost = 0.069752543\nEpoch: 0008 cost = 0.060884363\nEpoch: 0009 cost = 0.055276413\nEpoch: 0010 cost = 0.054631256\nEpoch: 0011 cost = 0.049675195\nEpoch: 0012 cost = 0.049125314\nEpoch: 0013 cost = 0.047231930\nEpoch: 0014 cost = 0.041290121\nEpoch: 0015 cost = 0.043621063\nLearning Finished!\nAccuracy: 0.9804\n'''"
+        }
+    ], 
+    "metadata": {
+        "kernelspec": {
+            "display_name": "Python 3.5", 
+            "name": "python3", 
+            "language": "python"
+        }, 
+        "language_info": {
+            "mimetype": "text/x-python", 
+            "nbconvert_exporter": "python", 
+            "version": "3.5.4", 
+            "name": "python", 
+            "file_extension": ".py", 
+            "pygments_lexer": "ipython3", 
+            "codemirror_mode": {
+                "version": 3, 
+                "name": "ipython"
+            }
+        }
+    }, 
+    "nbformat": 4
+}
