@@ -1,0 +1,124 @@
+{
+    "nbformat_minor": 2, 
+    "cells": [
+        {
+            "source": "---\n* *** \uc6d0\ubcf8 \uc18c\uc2a4\ub294 \ud64d\ucf69\uacfc\uae30\ub300 \uae40\uc131\ud6c8 \uad50\uc218\ub2d8\uc758  [Github link](https://github.com/hunkim/DeepLearningZeroToAll)\ub97c \ucc38\uc870\ud558\uc138\uc694 ***     \n* *** Watson studio notebook \uc5d0\uc11c \uc791\uc5c5 \uac00\ub2a5\ud558\ub3c4\ub85d \uc218\uc815\ud558\uc600\uc73c\uba70***\n* *** \ud55c\uae00\ub85c \uc124\uba85\ub41c \ubd80\ubd84\uc740 \uc81c\uac00 \uc2a4\ud130\ub514 \ud558\uba74\uc11c \uc774\ud574\ud55c \ub0b4\uc6a9\uc744 \ucd94\uac00\ud55c \uac83\uc785\ub2c8\ub2e4. ***\n---", 
+            "cell_type": "markdown", 
+            "metadata": {}
+        }, 
+        {
+            "source": "* ***overfitting \uc740 training \ud560\ub54c\ub294 \uc815\ud655\ub3c4\uac00 \uc0c1\ub2f9\ud788 \ub192\uc9c0\ub9cc,  Test \ub370\uc774\ud130\uc5d0\uc11c\ub294 \uc815\ud655\ub3c4\uac00 \uc0c1\ub300\uc801\uc73c\ub85c \ub0ae\uc740 \uc0c1\ud669\uc744 \ub9d0\ud569\ub2c8\ub2e4. ***\n![#1](https://github.com/moreal70/TensorFlow-Lab-with-Watson-Studio/raw/master/images/overfitting.png)   \n  \n    \n      \n* ***overfitting \uc744 \ud574\uacb0\ud558\ub294 \uba87\uac00\uc9c0 \ubc29\ubc95\uc740 ?  ***   \n***1. \ud559\uc2b5 \ub370\uc774\ud130\ub97c \ub354 \ub9ce\uc774 \uc0ac\uc6a9\ud558\ub294 \ubc29\ubc95***   \n***2. regularization \uc744 \uc0ac\uc6a9\ud558\ub294 \ubc29\ubc95***   \n***3. Reduce the number of feature \ubc29\ubc95***   ", 
+            "cell_type": "markdown", 
+            "metadata": {}
+        }, 
+        {
+            "source": "* ***Dropout \uc740 Deep Learning \uc5d0\uc11c  overfitting \uc758 \ubb38\uc81c\ub97c \ud574\uacb0\ud558\uae30 \uc704\ud55c \ubc29\ubc95\uc785\ub2c8\ub2e4. ***   \n*** -  random \ud558\uac8c \uba87\uac1c\uc758  \ub274\ub7f0\uc744  \uc81c\uac70\ud558\ub294 \uac83\uc73c\ub85c drop out ratio \uc744 \ud1b5\uc0c1 0.5 \uc0ac\uc6a9\ud569\ub2c8\ub2e4.***  \n*** - \uc8fc\uc758\ud560 \uc810\uc740 \ud559\uc2b5\ud560\ub54c\ub9cc drop out \uc744 \uc0ac\uc6a9\ud558\uace0 testing or real use \uc5d0\uc11c\ub294 1 \uc744 \uc0ac\uc6a9\ud569\ub2c8\ub2e4.*** ", 
+            "cell_type": "markdown", 
+            "metadata": {}
+        }, 
+        {
+            "execution_count": 2, 
+            "cell_type": "code", 
+            "metadata": {}, 
+            "outputs": [], 
+            "source": "# Lab 10 MNIST and Dropout\nimport tensorflow as tf\nimport random\nimport matplotlib.pyplot as plt\n\nfrom tensorflow.examples.tutorials.mnist import input_data\n\ntf.set_random_seed(777)  # reproducibility\n\n# parameters\nlearning_rate = 0.001\ntraining_epochs = 15\nbatch_size = 100\n\n# input place holders\nX = tf.placeholder(tf.float32, [None, 784])\nY = tf.placeholder(tf.float32, [None, 10])"
+        }, 
+        {
+            "execution_count": 3, 
+            "cell_type": "code", 
+            "metadata": {}, 
+            "outputs": [
+                {
+                    "output_type": "stream", 
+                    "name": "stdout", 
+                    "text": "WARNING:tensorflow:From <ipython-input-3-4e0049a7c2a4>:32: softmax_cross_entropy_with_logits (from tensorflow.python.ops.nn_ops) is deprecated and will be removed in a future version.\nInstructions for updating:\n\nFuture major versions of TensorFlow will allow gradients to flow\ninto the labels input on backprop by default.\n\nSee tf.nn.softmax_cross_entropy_with_logits_v2.\n\n"
+                }
+            ], 
+            "source": "# dropout (keep_prob) rate  0.7 on training, but should be 1 for testing\nkeep_prob = tf.placeholder(tf.float32)\n\n# weights & bias for nn layers\n# http://stackoverflow.com/questions/33640581/how-to-do-xavier-initialization-on-tensorflow\nW1 = tf.get_variable(\"W1\", shape=[784, 512], initializer=tf.contrib.layers.xavier_initializer())\nb1 = tf.Variable(tf.random_normal([512]))\nL1 = tf.nn.relu(tf.matmul(X, W1) + b1)\nL1 = tf.nn.dropout(L1, keep_prob=keep_prob)\n\nW2 = tf.get_variable(\"W2\", shape=[512, 512],initializer=tf.contrib.layers.xavier_initializer())\nb2 = tf.Variable(tf.random_normal([512]))\nL2 = tf.nn.relu(tf.matmul(L1, W2) + b2)\nL2 = tf.nn.dropout(L2, keep_prob=keep_prob)\n\nW3 = tf.get_variable(\"W3\", shape=[512, 512], initializer=tf.contrib.layers.xavier_initializer())\nb3 = tf.Variable(tf.random_normal([512]))\nL3 = tf.nn.relu(tf.matmul(L2, W3) + b3)\nL3 = tf.nn.dropout(L3, keep_prob=keep_prob)\n\nW4 = tf.get_variable(\"W4\", shape=[512, 512], initializer=tf.contrib.layers.xavier_initializer())\nb4 = tf.Variable(tf.random_normal([512]))\nL4 = tf.nn.relu(tf.matmul(L3, W4) + b4)\nL4 = tf.nn.dropout(L4, keep_prob=keep_prob)\n\nW5 = tf.get_variable(\"W5\", shape=[512, 10], initializer=tf.contrib.layers.xavier_initializer())\nb5 = tf.Variable(tf.random_normal([10]))\nhypothesis = tf.matmul(L4, W5) + b5\n\n# define cost/loss & optimizer\ncost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(\n    logits=hypothesis, labels=Y))\noptimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)\n\n# initialize\nsess = tf.Session()\nsess.run(tf.global_variables_initializer())"
+        }, 
+        {
+            "execution_count": 4, 
+            "cell_type": "code", 
+            "metadata": {}, 
+            "outputs": [
+                {
+                    "output_type": "stream", 
+                    "name": "stdout", 
+                    "text": "WARNING:tensorflow:From <ipython-input-4-f60484f82902>:1: read_data_sets (from tensorflow.contrib.learn.python.learn.datasets.mnist) is deprecated and will be removed in a future version.\nInstructions for updating:\nPlease use alternatives such as official/mnist/dataset.py from tensorflow/models.\nWARNING:tensorflow:From C:\\Users\\HyeonSuPARK\\Anaconda3\\lib\\site-packages\\tensorflow\\contrib\\learn\\python\\learn\\datasets\\mnist.py:260: maybe_download (from tensorflow.contrib.learn.python.learn.datasets.base) is deprecated and will be removed in a future version.\nInstructions for updating:\nPlease write your own downloading logic.\nWARNING:tensorflow:From C:\\Users\\HyeonSuPARK\\Anaconda3\\lib\\site-packages\\tensorflow\\contrib\\learn\\python\\learn\\datasets\\mnist.py:262: extract_images (from tensorflow.contrib.learn.python.learn.datasets.mnist) is deprecated and will be removed in a future version.\nInstructions for updating:\nPlease use tf.data to implement this functionality.\nExtracting MNIST_data/train-images-idx3-ubyte.gz\nWARNING:tensorflow:From C:\\Users\\HyeonSuPARK\\Anaconda3\\lib\\site-packages\\tensorflow\\contrib\\learn\\python\\learn\\datasets\\mnist.py:267: extract_labels (from tensorflow.contrib.learn.python.learn.datasets.mnist) is deprecated and will be removed in a future version.\nInstructions for updating:\nPlease use tf.data to implement this functionality.\nExtracting MNIST_data/train-labels-idx1-ubyte.gz\nWARNING:tensorflow:From C:\\Users\\HyeonSuPARK\\Anaconda3\\lib\\site-packages\\tensorflow\\contrib\\learn\\python\\learn\\datasets\\mnist.py:110: dense_to_one_hot (from tensorflow.contrib.learn.python.learn.datasets.mnist) is deprecated and will be removed in a future version.\nInstructions for updating:\nPlease use tf.one_hot on tensors.\nExtracting MNIST_data/t10k-images-idx3-ubyte.gz\nExtracting MNIST_data/t10k-labels-idx1-ubyte.gz\nWARNING:tensorflow:From C:\\Users\\HyeonSuPARK\\Anaconda3\\lib\\site-packages\\tensorflow\\contrib\\learn\\python\\learn\\datasets\\mnist.py:290: DataSet.__init__ (from tensorflow.contrib.learn.python.learn.datasets.mnist) is deprecated and will be removed in a future version.\nInstructions for updating:\nPlease use alternatives such as official/mnist/dataset.py from tensorflow/models.\nEpoch: 0001 cost = 0.449891252\nEpoch: 0002 cost = 0.174826500\nEpoch: 0003 cost = 0.127741220\nEpoch: 0004 cost = 0.107232317\nEpoch: 0005 cost = 0.091143613\nEpoch: 0006 cost = 0.082952435\nEpoch: 0007 cost = 0.073530076\nEpoch: 0008 cost = 0.068976749\nEpoch: 0009 cost = 0.062358419\nEpoch: 0010 cost = 0.059966767\nEpoch: 0011 cost = 0.057062264\nEpoch: 0012 cost = 0.051362277\nEpoch: 0013 cost = 0.051729186\nEpoch: 0014 cost = 0.048977253\nEpoch: 0015 cost = 0.044374647\nLearning Finished!\n"
+                }
+            ], 
+            "source": "mnist = input_data.read_data_sets(\"MNIST_data/\", one_hot=True)\n# Check out https://www.tensorflow.org/get_started/mnist/beginners for\n# more information about the mnist dataset\n\n# train my model\nfor epoch in range(training_epochs):\n    avg_cost = 0\n    total_batch = int(mnist.train.num_examples / batch_size)\n\n    for i in range(total_batch):\n        batch_xs, batch_ys = mnist.train.next_batch(batch_size)\n        feed_dict = {X: batch_xs, Y: batch_ys, keep_prob: 0.7}      # 30%\ub97c dropout \uc2dc\ud0b4\n        c, _ = sess.run([cost, optimizer], feed_dict=feed_dict)\n        avg_cost += c / total_batch\n\n    print('Epoch:', '%04d' % (epoch + 1), 'cost =', '{:.9f}'.format(avg_cost))\n\nprint('Learning Finished!')"
+        }, 
+        {
+            "source": "* ***\uc55e\uc5d0 lab \uc5d0\uc11c softmax \ub294 90% , NN\uc740 94%, xavier \ucd08\uae30\ud654\ub97c \uc4f0\uba74 97%, layer 5\uac1c\ub97c \uc4f0\uba74 98.11 % \uc815\ub3c4\uc758 \uc815\ud655\ub3c4\ub97c \ubcf4\uc5ec\uc8fc\uc5c8\uc2b5\ub2c8\ub2e4.***", 
+            "cell_type": "markdown", 
+            "metadata": {}
+        }, 
+        {
+            "execution_count": 6, 
+            "cell_type": "code", 
+            "metadata": {}, 
+            "outputs": [
+                {
+                    "output_type": "stream", 
+                    "name": "stdout", 
+                    "text": "Accuracy: 0.9824\n"
+                }
+            ], 
+            "source": "# Test model and check accuracy\ncorrect_prediction = tf.equal(tf.argmax(hypothesis, 1), tf.argmax(Y, 1))\naccuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))\nprint('Accuracy:', sess.run(accuracy, feed_dict={\n      X: mnist.test.images, Y: mnist.test.labels, keep_prob: 1}))"
+        }, 
+        {
+            "source": "* ***sample \uc744 random \ud558\uac8c \uac00\uc838\uc640\uc11c \uadf8\ub9bc\uc73c\ub85c \ubcf4\uc5ec\uc8fc\uace0 \uc608\uce21\ud569\ub2c8\ub2e4. ***", 
+            "cell_type": "markdown", 
+            "metadata": {}
+        }, 
+        {
+            "execution_count": 19, 
+            "cell_type": "code", 
+            "metadata": {}, 
+            "outputs": [
+                {
+                    "output_type": "stream", 
+                    "name": "stdout", 
+                    "text": "Label:  [6]\nPrediction:  [6]\n"
+                }, 
+                {
+                    "output_type": "display_data", 
+                    "data": {
+                        "image/png": "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\n", 
+                        "text/plain": "<matplotlib.figure.Figure at 0x28d3e8a82e8>"
+                    }, 
+                    "metadata": {}
+                }
+            ], 
+            "source": "# Get one and predict\nr = random.randint(0, mnist.test.num_examples - 1)\nprint(\"Label: \", sess.run(tf.argmax(mnist.test.labels[r:r + 1], 1)))\nprint(\"Prediction: \", sess.run(\n    tf.argmax(hypothesis, 1), feed_dict={X: mnist.test.images[r:r + 1], keep_prob: 1}))    # testing \uc5d0\uc11c\ub294 100% \uc0ac\uc6a9\ud568\n\nplt.imshow(mnist.test.images[r:r + 1].\n          reshape(28, 28), cmap='Greys', interpolation='nearest')\nplt.show()"
+        }, 
+        {
+            "execution_count": null, 
+            "cell_type": "code", 
+            "metadata": {}, 
+            "outputs": [], 
+            "source": "'''\nEpoch: 0001 cost = 0.447322626\nEpoch: 0002 cost = 0.157285590\nEpoch: 0003 cost = 0.121884535\nEpoch: 0004 cost = 0.098128681\nEpoch: 0005 cost = 0.082901778\nEpoch: 0006 cost = 0.075337573\nEpoch: 0007 cost = 0.069752543\nEpoch: 0008 cost = 0.060884363\nEpoch: 0009 cost = 0.055276413\nEpoch: 0010 cost = 0.054631256\nEpoch: 0011 cost = 0.049675195\nEpoch: 0012 cost = 0.049125314\nEpoch: 0013 cost = 0.047231930\nEpoch: 0014 cost = 0.041290121\nEpoch: 0015 cost = 0.043621063\nLearning Finished!\nAccuracy: 0.9804\n'''"
+        }
+    ], 
+    "metadata": {
+        "kernelspec": {
+            "display_name": "Python 3.5", 
+            "name": "python3", 
+            "language": "python"
+        }, 
+        "language_info": {
+            "mimetype": "text/x-python", 
+            "nbconvert_exporter": "python", 
+            "version": "3.5.4", 
+            "name": "python", 
+            "file_extension": ".py", 
+            "pygments_lexer": "ipython3", 
+            "codemirror_mode": {
+                "version": 3, 
+                "name": "ipython"
+            }
+        }
+    }, 
+    "nbformat": 4
+}
