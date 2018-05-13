@@ -1,0 +1,131 @@
+{
+    "nbformat_minor": 2, 
+    "cells": [
+        {
+            "source": "---\n* *** \uc6d0\ubcf8 \uc18c\uc2a4\ub294 \ud64d\ucf69\uacfc\uae30\ub300 \uae40\uc131\ud6c8 \uad50\uc218\ub2d8\uc758  [Github link](https://github.com/hunkim/DeepLearningZeroToAll)\ub97c \ucc38\uc870\ud558\uc138\uc694 ***     \n* *** Watson studio notebook \uc5d0\uc11c \uc791\uc5c5 \uac00\ub2a5\ud558\ub3c4\ub85d \uc218\uc815\ud558\uc600\uc73c\uba70***\n* *** \ud55c\uae00\ub85c \uc124\uba85\ub41c \ubd80\ubd84\uc740 \uc81c\uac00 \uc2a4\ud130\ub514 \ud558\uba74\uc11c \uc774\ud574\ud55c \ub0b4\uc6a9\uc744 \ucd94\uac00\ud55c \uac83\uc785\ub2c8\ub2e4. ***\n---", 
+            "cell_type": "markdown", 
+            "metadata": {}
+        }, 
+        {
+            "source": "* ***\ucd08\uae30\ud654\uac12\uc744 \uc801\uc808\ud558\uac8c \uc815\uc758\ud574\uc11c \uc2dc\uc791\ud558\uba74, \uc815\ud655\ub3c4\uac00 \ub9e4\uc6b0 \uc62c\ub77c\uac11\ub2c8\ub2e4. ***\n* ***xavier \ucd08\uae30\ud654 \ud568\uc218\ub97c \uc0ac\uc6a9\ud574 \ubd05\ub2c8\ub2e4. ***", 
+            "cell_type": "markdown", 
+            "metadata": {}
+        }, 
+        {
+            "execution_count": 2, 
+            "cell_type": "code", 
+            "metadata": {}, 
+            "outputs": [], 
+            "source": "# Lab 10 MNIST and Xavier\nimport tensorflow as tf\nimport random\nimport matplotlib.pyplot as plt\n\nfrom tensorflow.examples.tutorials.mnist import input_data\n\ntf.set_random_seed(777)  # reproducibility\n\n# parameters\nlearning_rate = 0.001\ntraining_epochs = 15\nbatch_size = 100\n\n# input place holders\nX = tf.placeholder(tf.float32, [None, 784])\nY = tf.placeholder(tf.float32, [None, 10])"
+        }, 
+        {
+            "source": "* ***xavier \ucd08\uae30\ud654 \ud568\uc218\ub97c \uc0ac\uc6a9\ud568***", 
+            "cell_type": "markdown", 
+            "metadata": {}
+        }, 
+        {
+            "execution_count": 3, 
+            "cell_type": "code", 
+            "metadata": {}, 
+            "outputs": [], 
+            "source": "# weights & bias for nn layers\n# http://stackoverflow.com/questions/33640581/how-to-do-xavier-initialization-on-tensorflow\nW1 = tf.get_variable(\"W1\", shape=[784, 256], initializer=tf.contrib.layers.xavier_initializer())\nb1 = tf.Variable(tf.random_normal([256]))\nL1 = tf.nn.relu(tf.matmul(X, W1) + b1)\n\nW2 = tf.get_variable(\"W2\", shape=[256, 256], initializer=tf.contrib.layers.xavier_initializer())\nb2 = tf.Variable(tf.random_normal([256]))\nL2 = tf.nn.relu(tf.matmul(L1, W2) + b2)\n\nW3 = tf.get_variable(\"W3\", shape=[256, 10], initializer=tf.contrib.layers.xavier_initializer())\nb3 = tf.Variable(tf.random_normal([10]))\nhypothesis = tf.matmul(L2, W3) + b3"
+        }, 
+        {
+            "execution_count": 4, 
+            "cell_type": "code", 
+            "metadata": {}, 
+            "outputs": [
+                {
+                    "output_type": "stream", 
+                    "name": "stdout", 
+                    "text": "WARNING:tensorflow:From <ipython-input-4-26efdcac3aee>:2: softmax_cross_entropy_with_logits (from tensorflow.python.ops.nn_ops) is deprecated and will be removed in a future version.\nInstructions for updating:\n\nFuture major versions of TensorFlow will allow gradients to flow\ninto the labels input on backprop by default.\n\nSee tf.nn.softmax_cross_entropy_with_logits_v2.\n\n"
+                }
+            ], 
+            "source": "# define cost/loss & optimizer\ncost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits( logits=hypothesis, labels=Y))\noptimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)\n\n# initialize\nsess = tf.Session()\nsess.run(tf.global_variables_initializer())"
+        }, 
+        {
+            "execution_count": 5, 
+            "cell_type": "code", 
+            "metadata": {}, 
+            "outputs": [
+                {
+                    "output_type": "stream", 
+                    "name": "stdout", 
+                    "text": "WARNING:tensorflow:From <ipython-input-5-fe558cf152aa>:1: read_data_sets (from tensorflow.contrib.learn.python.learn.datasets.mnist) is deprecated and will be removed in a future version.\nInstructions for updating:\nPlease use alternatives such as official/mnist/dataset.py from tensorflow/models.\nWARNING:tensorflow:From C:\\Users\\HyeonSuPARK\\Anaconda3\\lib\\site-packages\\tensorflow\\contrib\\learn\\python\\learn\\datasets\\mnist.py:260: maybe_download (from tensorflow.contrib.learn.python.learn.datasets.base) is deprecated and will be removed in a future version.\nInstructions for updating:\nPlease write your own downloading logic.\nWARNING:tensorflow:From C:\\Users\\HyeonSuPARK\\Anaconda3\\lib\\site-packages\\tensorflow\\contrib\\learn\\python\\learn\\datasets\\mnist.py:262: extract_images (from tensorflow.contrib.learn.python.learn.datasets.mnist) is deprecated and will be removed in a future version.\nInstructions for updating:\nPlease use tf.data to implement this functionality.\nExtracting MNIST_data/train-images-idx3-ubyte.gz\nWARNING:tensorflow:From C:\\Users\\HyeonSuPARK\\Anaconda3\\lib\\site-packages\\tensorflow\\contrib\\learn\\python\\learn\\datasets\\mnist.py:267: extract_labels (from tensorflow.contrib.learn.python.learn.datasets.mnist) is deprecated and will be removed in a future version.\nInstructions for updating:\nPlease use tf.data to implement this functionality.\nExtracting MNIST_data/train-labels-idx1-ubyte.gz\nWARNING:tensorflow:From C:\\Users\\HyeonSuPARK\\Anaconda3\\lib\\site-packages\\tensorflow\\contrib\\learn\\python\\learn\\datasets\\mnist.py:110: dense_to_one_hot (from tensorflow.contrib.learn.python.learn.datasets.mnist) is deprecated and will be removed in a future version.\nInstructions for updating:\nPlease use tf.one_hot on tensors.\nExtracting MNIST_data/t10k-images-idx3-ubyte.gz\nExtracting MNIST_data/t10k-labels-idx1-ubyte.gz\nWARNING:tensorflow:From C:\\Users\\HyeonSuPARK\\Anaconda3\\lib\\site-packages\\tensorflow\\contrib\\learn\\python\\learn\\datasets\\mnist.py:290: DataSet.__init__ (from tensorflow.contrib.learn.python.learn.datasets.mnist) is deprecated and will be removed in a future version.\nInstructions for updating:\nPlease use alternatives such as official/mnist/dataset.py from tensorflow/models.\nEpoch: 0001 cost = 0.315082912\nEpoch: 0002 cost = 0.115140875\nEpoch: 0003 cost = 0.075245137\nEpoch: 0004 cost = 0.052740179\nEpoch: 0005 cost = 0.040237784\nEpoch: 0006 cost = 0.030997383\nEpoch: 0007 cost = 0.025295666\nEpoch: 0008 cost = 0.020105720\nEpoch: 0009 cost = 0.016186265\nEpoch: 0010 cost = 0.016550414\nEpoch: 0011 cost = 0.014472676\nEpoch: 0012 cost = 0.009477886\nEpoch: 0013 cost = 0.010470423\nEpoch: 0014 cost = 0.010918480\nEpoch: 0015 cost = 0.011669056\nLearning Finished!\n"
+                }
+            ], 
+            "source": "mnist = input_data.read_data_sets(\"MNIST_data/\", one_hot=True)\n# Check out https://www.tensorflow.org/get_started/mnist/beginners for\n# more information about the mnist dataset\n\n# train my model\nfor epoch in range(training_epochs):\n    avg_cost = 0\n    total_batch = int(mnist.train.num_examples / batch_size)\n\n    for i in range(total_batch):\n        batch_xs, batch_ys = mnist.train.next_batch(batch_size)\n        feed_dict = {X: batch_xs, Y: batch_ys}\n        c, _ = sess.run([cost, optimizer], feed_dict=feed_dict)\n        avg_cost += c / total_batch\n\n    print('Epoch:', '%04d' % (epoch + 1), 'cost =', '{:.9f}'.format(avg_cost))\n\nprint('Learning Finished!')"
+        }, 
+        {
+            "source": "* ***\uc55e\uc5d0 lab \uc5d0\uc11c softmax \ub294 90%\ub294  NN\uc740 94% \uc815\ub3c4\uc758 \uc815\ud655\ub3c4\ub97c \ubcf4\uc5ec\uc8fc\uc5c8\uc2b5\ub2c8\ub2e4.***", 
+            "cell_type": "markdown", 
+            "metadata": {}
+        }, 
+        {
+            "execution_count": 6, 
+            "cell_type": "code", 
+            "metadata": {}, 
+            "outputs": [
+                {
+                    "output_type": "stream", 
+                    "name": "stdout", 
+                    "text": "Accuracy: 0.9787\n"
+                }
+            ], 
+            "source": "# Test model and check accuracy\ncorrect_prediction = tf.equal(tf.argmax(hypothesis, 1), tf.argmax(Y, 1))\naccuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))\nprint('Accuracy:', sess.run(accuracy, feed_dict={\n      X: mnist.test.images, Y: mnist.test.labels}))"
+        }, 
+        {
+            "source": "* ***sample \uc744 random \ud558\uac8c \uac00\uc838\uc640\uc11c \uadf8\ub9bc\uc73c\ub85c \ubcf4\uc5ec\uc8fc\uace0 \uc608\uce21\ud569\ub2c8\ub2e4. ***", 
+            "cell_type": "markdown", 
+            "metadata": {}
+        }, 
+        {
+            "execution_count": 37, 
+            "cell_type": "code", 
+            "metadata": {}, 
+            "outputs": [
+                {
+                    "output_type": "stream", 
+                    "name": "stdout", 
+                    "text": "Label:  [5]\nPrediction:  [5]\n"
+                }, 
+                {
+                    "output_type": "display_data", 
+                    "data": {
+                        "image/png": "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\n", 
+                        "text/plain": "<matplotlib.figure.Figure at 0x1fabffc8278>"
+                    }, 
+                    "metadata": {}
+                }
+            ], 
+            "source": "# Get one and predict\nr = random.randint(0, mnist.test.num_examples - 1)\nprint(\"Label: \", sess.run(tf.argmax(mnist.test.labels[r:r + 1], 1)))\nprint(\"Prediction: \", sess.run(\n    tf.argmax(hypothesis, 1), feed_dict={X: mnist.test.images[r:r + 1]}))\n\nplt.imshow(mnist.test.images[r:r + 1].\n           reshape(28, 28), cmap='Greys', interpolation='nearest')\nplt.show()"
+        }, 
+        {
+            "execution_count": null, 
+            "cell_type": "code", 
+            "metadata": {}, 
+            "outputs": [], 
+            "source": "'''\nEpoch: 0001 cost = 0.301498963\nEpoch: 0002 cost = 0.107252513\nEpoch: 0003 cost = 0.064888892\nEpoch: 0004 cost = 0.044463030\nEpoch: 0005 cost = 0.029951642\nEpoch: 0006 cost = 0.020663404\nEpoch: 0007 cost = 0.015853033\nEpoch: 0008 cost = 0.011764387\nEpoch: 0009 cost = 0.008598264\nEpoch: 0010 cost = 0.007383116\nEpoch: 0011 cost = 0.006839140\nEpoch: 0012 cost = 0.004672963\nEpoch: 0013 cost = 0.003979437\nEpoch: 0014 cost = 0.002714260\nEpoch: 0015 cost = 0.004707661\nLearning Finished!\nAccuracy: 0.9783\n'''"
+        }
+    ], 
+    "metadata": {
+        "kernelspec": {
+            "display_name": "Python 3.5", 
+            "name": "python3", 
+            "language": "python"
+        }, 
+        "language_info": {
+            "mimetype": "text/x-python", 
+            "nbconvert_exporter": "python", 
+            "version": "3.5.4", 
+            "name": "python", 
+            "file_extension": ".py", 
+            "pygments_lexer": "ipython3", 
+            "codemirror_mode": {
+                "version": 3, 
+                "name": "ipython"
+            }
+        }
+    }, 
+    "nbformat": 4
+}
